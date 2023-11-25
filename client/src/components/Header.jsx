@@ -27,7 +27,7 @@ const Header = () => {
       <div className="border-l border-gray-300"></div>
       <div>Any week</div>
       <div className="border-l border-gray-300"></div>
-      <div>Ad guests</div>
+      <div>Add guests</div>
       <button className="bg-primary text-white p-2 rounded-full">
         <svg
           xmlns="http://www.w3.org/2000/svg"
