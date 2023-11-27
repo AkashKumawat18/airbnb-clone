@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import User from "./models/userModel.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+import cookieParser from "cookie-parser";
 
 
 const app = express();
@@ -21,6 +22,8 @@ app.use(cors({
     credentials:true,
     origin:'http://localhost:5173'
 }));
+
+app.use(cookieParser());
 
 const jwtSecret = process.env.Secret;
 
@@ -44,12 +47,15 @@ app.post('/login', async (req,res) => {
     if(userDoc){
         const passOk = bcrypt.compareSync(password, userDoc.password)
         if(passOk){
-            jwt.sign({email:userDoc.email,id:userDoc._id},jwtSecret,{},(err,token) => {
+            jwt.sign({email:userDoc.email,
+                id:userDoc._id,
+            name:userDoc.name
+        },jwtSecret,{},(err,token) => {
                 if (err) throw err;
                 res.cookie('token',token,{
                     secure:true,
                     sameSite:'none'
-                }).json('pass ok')
+                }).json(userDoc)
             })
             
         }
@@ -61,4 +67,22 @@ app.post('/login', async (req,res) => {
     }
 })
 
+app.get('/profile',(req,res)=>{
+    const {token} = req.cookies;
+    if(token){
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            if(err) throw err;
+            const {name,email,_id} = await User.findById(userData.id);
+            res.json({name,email,_id});
+        })
+    }
+    else{
+        res.json(null);
+    }
+})
+
+//logout api
+app.post('/logout',(req,res) => {
+    res.cookie('token','').json(true);
+})
 app.listen(4000);
